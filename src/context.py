@@ -1,4 +1,5 @@
 from scheduled_tasks.persistence import ScheduledTasksPersistence
+from scheduled_tasks.service import ScheduledTasksService
 
 
 class ApplicationContext():
@@ -9,3 +10,5 @@ class ApplicationContext():
 
     def __init__(self):
         self.scheduled_tasks_persistence = ScheduledTasksPersistence()
+        self.scheduled_tasks = ScheduledTasksService(
+            self.scheduled_tasks_persistence)

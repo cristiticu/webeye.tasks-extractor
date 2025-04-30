@@ -1,4 +1,5 @@
-from scheduled_tasks.model import parse_task
+from typing import Union
+from scheduled_tasks.model import ScheduledAggregation, ScheduledCheck, parse_task
 import settings
 from boto3.dynamodb.conditions import Key
 from utils.dynamodb import dynamodb_table
@@ -9,7 +10,7 @@ class ScheduledTasksPersistence():
         self.tasks = dynamodb_table(
             settings.SCHEDULED_TASKS_TABLE_NAME, settings.SCHEDULED_TASKS_TABLE_REGION)
 
-    def get_scheduled_tasks(self, frequency: str, day_filter: str):
+    def get_scheduled_tasks(self, frequency: str, day_filter: str) -> list[Union[ScheduledCheck, ScheduledAggregation]]:
         schedule = f"{frequency}#{day_filter}"
 
         response = self.tasks.query(
