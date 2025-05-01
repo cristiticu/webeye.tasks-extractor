@@ -19,7 +19,7 @@ def lambda_handler(event: dict[str, Any], context: "Context") -> dict[str, Any]:
 
         print(f"Tasks: {tasks}")
 
-        check_tasks = [{"u_guid": str(task.u_guid), "configuration": task.configuration.model_dump(
+        check_tasks = [{"u_guid": str(task.u_guid), "w_guid": str(task.w_guid), "configuration": task.configuration.model_dump(
             mode="json")} for task in tasks if task.task_type == "CHECK"]
 
         aggregate_tasks = [

@@ -2,24 +2,36 @@ from datetime import datetime
 from typing import Generic, Literal, Mapping, TypeVar
 from pydantic import UUID4, BaseModel
 
+
 ConfigurationType = TypeVar("ConfigurationType", bound=BaseModel)
 
 
 class ScheduledTask(BaseModel, Generic[ConfigurationType]):
     guid: UUID4
     u_guid: UUID4
+    w_guid: UUID4
     task_type: str
     interval: str
     days: str
     configuration: ConfigurationType
     c_at: datetime
 
+    @classmethod
+    def from_db_item(cls, item: Mapping):
+        task_type = item["s_key"].split("#")[0]
+        model_cls = TASK_TYPE_TO_CLASS.get(task_type)
+
+        if model_cls is None:
+            raise ValueError(f"Unsupported task_type: {task_type}")
+
+        return model_cls.from_db_item(item)
+
 
 class CheckConfiguration(BaseModel):
     url: str
     zones: list[Literal["america", "europe", "asia_pacific"]]
     check_string: str | None = None
-    fail_on_status: list[int]
+    accepted_status: list[str]
     timeout: int
     save_screenshot: bool
 
@@ -33,6 +45,7 @@ class ScheduledCheck(ScheduledTask[CheckConfiguration]):
         return {
             "h_key": h_key,
             "s_key": s_key,
+            "w_guid": str(self.w_guid),
             "schedule": schedule,
             "configuration": self.configuration.model_dump(mode="json"),
             "c_at": self.c_at.isoformat().replace("+00:00", "Z")
@@ -72,6 +85,7 @@ class ScheduledAggregation(ScheduledTask[AggregationConfiguration]):
         return {
             "h_key": h_key,
             "s_key": s_key,
+            "w_guid": str(self.w_guid),
             "schedule": schedule,
             "configuration": self.configuration.model_dump(mode="json"),
             "c_at": self.c_at.isoformat().replace("+00:00", "Z")
@@ -102,13 +116,3 @@ TASK_TYPE_TO_CLASS = {
     "CHECK": ScheduledCheck,
     "AGGREGATE": ScheduledAggregation
 }
-
-
-def parse_task(item: Mapping):
-    task_type = item["s_key"].split("#")[0]
-    model_cls = TASK_TYPE_TO_CLASS.get(task_type)
-
-    if model_cls is None:
-        raise ValueError(f"Unsupported task_type: {task_type}")
-
-    return model_cls.from_db_item(item)

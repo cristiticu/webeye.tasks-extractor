@@ -1,5 +1,5 @@
 from typing import Union
-from scheduled_tasks.model import ScheduledAggregation, ScheduledCheck, parse_task
+from scheduled_tasks.model import ScheduledAggregation, ScheduledCheck, ScheduledTask
 import settings
 from boto3.dynamodb.conditions import Key
 from utils.dynamodb import dynamodb_table
@@ -19,4 +19,4 @@ class ScheduledTasksPersistence():
         )
         items = response.get("Items")
 
-        return [parse_task(item) for item in items]
+        return [ScheduledTask.from_db_item(item) for item in items]
